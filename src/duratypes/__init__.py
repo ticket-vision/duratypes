@@ -9,20 +9,20 @@ __email__ = "dillon.barendt@ticket-vision.com"
 
 from .core import (
     Duration,
-    Seconds,
-    Minutes,
-    Hours,
-    parse_duration,
-    format_duration,
     DurationAdapter,
+    Hours,
+    Minutes,
+    Seconds,
+    format_duration,
+    parse_duration,
 )
 
 __all__ = [
     "Duration",
-    "Seconds",
-    "Minutes",
-    "Hours",
-    "parse_duration",
-    "format_duration",
     "DurationAdapter",
+    "Hours",
+    "Minutes",
+    "Seconds",
+    "format_duration",
+    "parse_duration",
 ]
