@@ -125,7 +125,7 @@ parse_duration(3600)       # 3600
 ```
 
 #### `format_duration(seconds: int) -> str`
-Format seconds into human-readable duration string.
+Format durations into a human-readable string.
 
 **Parameters:**
 - `seconds`: Duration in seconds (can be negative)
@@ -199,7 +199,6 @@ config = APIConfig(
     rate_limit_window="2h30m"
 )
 ```
-
 ### JSON Schema Integration
 ```python
 from pydantic import BaseModel
@@ -217,6 +216,8 @@ print(schema["properties"]["timeout"])
 ---
 
 ## Error Handling
+
+
 
 duratypes provides clear, specific error messages:
 
@@ -318,7 +319,7 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT - License - see the [LICENSE](LICENSE) file for details.
 
 ---
 

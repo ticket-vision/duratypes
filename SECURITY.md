@@ -5,7 +5,7 @@
 We actively support the following versions of duratypes with security updates:
 
 | Version | Supported          |
-| ------- | ------------------ |
+|---------|--------------------|
 | 0.1.x   | :white_check_mark: |
 
 ## Reporting a Vulnerability
@@ -14,8 +14,8 @@ We take the security of duratypes seriously. If you discover a security vulnerab
 
 ### How to Report
 
-1. **Do NOT create a public GitHub issue** for security vulnerabilities
-2. Send an email to the maintainers with details about the vulnerability
+1. **Do NOT create a public GitHub issue** for security vulnerabilities 
+2. Email maintainers with details about the vulnerability
 3. Include the following information in your report:
    - Description of the vulnerability
    - Steps to reproduce the issue
@@ -65,10 +65,7 @@ Security updates will be:
 - Announced through GitHub releases
 - Tagged with security labels for easy identification
 
-## Contact
+## Security Maintainers
 
-For security-related questions or concerns, please contact the maintainers through the project's GitHub repository.
-
----
-
+ - For security-related questions or concerns, please contact the maintainers through the project's GitHub repository.
 *This security policy is reviewed and updated regularly to ensure it meets current best practices.*

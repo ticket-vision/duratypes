@@ -3,8 +3,7 @@
 *Last Updated: 2025-08-05*
 
 ## Overview
-
-This document contains the results of our security review of duratypes dependencies.
+This document summarizes security reviews performed against the "duratypes" Python package. 
 
 ## Current Dependencies
 
@@ -15,9 +14,9 @@ This document contains the results of our security review of duratypes dependenc
   - Security: Well-maintained, active security monitoring
 
 ### Development Dependencies
-- **pytest**: 8.4.1 - ✅ Current, no known vulnerabilities
-- **pytest-cov**: 6.2.1 - ✅ Current, no known vulnerabilities  
-- **hypothesis**: 6.137.1 - ✅ Current, no known vulnerabilities
+- **pytest**: 8.4.1 - ✅ - Current, no known vulnerabilities
+- **pytest-cov**: 6.2.1 - ✅ - Current, no known vulnerabilities  
+- **hypothesis**: 6.137.1 - ✅ - Current, no known vulnerabilities
 - **ruff**: 0.12.7 - ✅ Current, no known vulnerabilities
 - **mypy**: 1.17.1 - ✅ Current, no known vulnerabilities
 - **black**: 25.1.0 - ✅ Current, no known vulnerabilities
@@ -28,10 +27,11 @@ This document contains the results of our security review of duratypes dependenc
 ### Risk Level: LOW ✅
 
 All dependencies are:
-- Recent versions with active maintenance
+- Recent versions with active maintainers
+- PEP 8, the Style Guide for Python Code, recommends limiting all lines of code to a maximum of 79 characters. For docstrings and comments, the line length should be limited to 72 characters
 - No known security vulnerabilities identified
 - From trusted, well-maintained projects
-- Minimal attack surface (only 1 runtime dependency)
+- Minimal attack surface (only one runtime dependency)
 
 ### Recommendations
 

@@ -109,7 +109,7 @@ mypy src/
 
 #### Code Style
 
-- **Follow PEP 8** with line length of 88 characters (Black default)
+- **PEP 8**, the Style Guide for Python Code, recommends limiting all lines of code to a maximum of 79 characters. For docstrings and comments, the line  length should be limited to 72 characters
 - **Use type hints** for all function parameters and return values
 - **Write descriptive variable names** and avoid abbreviations
 - **Add docstrings** to all public functions and classes
@@ -117,7 +117,7 @@ mypy src/
 #### Example Function
 
 ```python
-def parse_duration(v: Union[str, int, float]) -> int:
+def parse_duration(v: str | int | float) -> int:
     """
     Parse a duration string, integer, or float into seconds.
     
@@ -143,13 +143,9 @@ def parse_duration(v: Union[str, int, float]) -> int:
 - **Include examples of valid input** in error messages when possible
 
 ```python
-raise ValueError(
-    f"Invalid duration format: {v!r}. "
-    f"Supported formats: compound ('30s', '5m', '1h30m'), "
-    f"ISO 8601 ('PT30S', 'PT5M', 'PT1H30M'), or numeric (30, 30.5)"
-)
-```
+raise ValueError(f"Invalid duration format: {str}", f"Supported formats: compound ('30s', '5m', '1h30m'), f" ('PT30S', 'PT5M', 'PT1H30M'), )
 
+```
 #### Performance Considerations
 
 - **Use constants** instead of magic numbers
@@ -184,17 +180,12 @@ To add support for new time units (e.g., weeks):
        r"(?P<value>\d+(?:\.\d+)?)\s*"
        r"(?P<unit>w(?:eek)?s?|...)",  # Add week support
        re.IGNORECASE
-   )
-   ```
-
+   
 3. **Update parsing logic**:
-   ```python
-   elif unit.startswith("w"):
-       total += val * SECONDS_PER_WEEK
-   ```
-
-4. **Add tests** for the new functionality
-5. **Update documentation** with examples
+4. ```pythone if unit.startswith("w"):```
+5. total += val * SECONDS_PER_WEEK
+6. **Add tests** for the new functionality
+7. **Update documentation** with examples
 
 ## Testing
 
@@ -222,29 +213,30 @@ python -m pytest tests/test_core.py::test_parse_and_adapter -v
 import pytest
 from duratypes import parse_duration, format_duration
 
+
 class TestNewFeature:
     """Test class for new feature."""
-    
+
     def test_basic_functionality(self):
         """Test basic functionality."""
         result = parse_duration("1w")
         assert result == 604800  # 1 week in seconds
-    
+
     def test_edge_cases(self):
         """Test edge cases and error conditions."""
         with pytest.raises(ValueError, match="Invalid duration format"):
             parse_duration("invalid")
-    
+
     @pytest.mark.parametrize("input_val,expected", [
         ("1w", 604800),
         ("2w", 1209600),
         ("1w3d", 864000),
     ])
-    def test_parametrized(self, input_val, expected):
+    def test_paramaterized(self, input_val: str, expected: object) -> None:
         """Test multiple inputs with parametrize."""
         assert parse_duration(input_val) == expected
 ```
-
+test_parameterized
 #### Test Coverage Areas
 
 Ensure your tests cover:
@@ -265,6 +257,7 @@ from hypothesis import given, strategies as st
 @given(st.integers(min_value=0, max_value=86400))
 def test_format_parse_roundtrip(seconds):
     """Test that format -> parse is a roundtrip for valid inputs."""
+    from duratypes import parse_duration, format_duration
     formatted = format_duration(seconds)
     parsed = parse_duration(formatted)
     assert parsed == seconds
@@ -312,7 +305,7 @@ Before submitting your PR, review:
 - [ ] **Code follows style guidelines** (ruff/black formatting)
 - [ ] **All tests pass** locally
 - [ ] **Type hints are present** and correct
-- [ ] **Docstrings are comprehensive** and follow format
+- [ ] **Docstrings are comprehensive**
 - [ ] **Error messages are helpful** and specific
 - [ ] **Performance impact** is considered
 - [ ] **Documentation is updated** (README, docstrings)
