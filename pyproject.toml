@@ -7,7 +7,7 @@ name = "duratypes"
 version = "0.1.0"
 description = "A Python package for duration and time-related data types and utilities"
 readme = "README.md"
-license = "MIT"
+license = { file = "LICENSE" }
 authors = [
     { name = "Dillon Barendt", email = "dillon.barendt@ticket-vision.com" }
 ]
@@ -28,6 +28,8 @@ classifiers = [
 requires-python = ">=3.12"
 dependencies = [
     "pydantic>=2.5",
+    "setuptools>=61.0",
+    "wheel>=0.45.1",
 ]
 
 [project.urls]

@@ -2,7 +2,6 @@
 
 import pytest
 from pydantic import BaseModel, ValidationError, Field
-from typing import Optional, List
 
 from duratypes import Duration, Seconds, Minutes, Hours, parse_duration
 
@@ -25,8 +24,8 @@ class DetailedTaskModel(BaseModel):
 class ProjectModel(BaseModel):
     """Complex model with nested duration fields."""
     name: str
-    tasks: List[SimpleTaskModel]
-    total_duration: Optional[Duration] = None
+    tasks: SimpleTaskModel | None = None
+    total_duration: Duration | None = None
 
     def model_post_init(self, __context) -> None:
         """Calculate total duration from tasks."""
