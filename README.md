@@ -1,4 +1,4 @@
-# DuraTypes
+# duratypes
 
 Typed duration utilities for Python, designed for speed, clarity, and seamless use with **Pydantic v2**.
 
