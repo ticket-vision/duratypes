@@ -1,0 +1,244 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'  # Trigger on version tags like v0.1.0, v1.0.0, etc.
+
+permissions:
+  contents: write
+  id-token: write  # Required for trusted publishing to PyPI
+
+jobs:
+  test:
+    name: Run Tests Before Release
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12", "3.13"]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v3
+      with:
+        version: "latest"
+
+    - name: Install dependencies
+      run: |
+        uv sync --dev
+
+    - name: Run linting
+      run: |
+        uv run ruff check src/ tests/
+        uv run ruff format --check src/ tests/
+
+    - name: Run type checking
+      run: |
+        uv run mypy src/
+
+    - name: Run tests with coverage
+      run: |
+        uv run pytest --cov=duratypes --cov-report=xml --cov-report=term-missing
+
+  build:
+    name: Build Distribution
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v3
+      with:
+        version: "latest"
+
+    - name: Build package
+      run: |
+        uv build
+
+    - name: Check package
+      run: |
+        uv pip install twine
+        uv run twine check dist/*
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: dist
+        path: dist/
+
+  github-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch full history for changelog generation
+
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: dist
+        path: dist/
+
+    - name: Extract version from tag
+      id: version
+      run: |
+        echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+    - name: Extract changelog for this version
+      id: changelog
+      run: |
+        # Extract changelog section for this version
+        VERSION="${{ steps.version.outputs.VERSION }}"
+
+        # Create a temporary file for the changelog
+        CHANGELOG_FILE=$(mktemp)
+
+        # Extract the changelog section for this version
+        awk -v version="[$VERSION]" '
+        /^## \[/ {
+          if ($0 ~ version) {
+            found = 1
+            next
+          } else if (found) {
+            exit
+          }
+        }
+        found && /^## \[/ { exit }
+        found { print }
+        ' CHANGELOG.md > "$CHANGELOG_FILE"
+
+        # Set the changelog content as output
+        echo "CHANGELOG_CONTENT<<EOF" >> $GITHUB_OUTPUT
+        cat "$CHANGELOG_FILE" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+
+        rm "$CHANGELOG_FILE"
+
+    - name: Create GitHub Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release v${{ steps.version.outputs.VERSION }}
+        body: |
+          ## Changes in v${{ steps.version.outputs.VERSION }}
+
+          ${{ steps.changelog.outputs.CHANGELOG_CONTENT }}
+
+          ## Installation
+
+          ```bash
+          pip install duratypes==${{ steps.version.outputs.VERSION }}
+          ```
+
+          ## Full Changelog
+
+          See [CHANGELOG.md](https://github.com/dillon-barendt/duratypes/blob/v${{ steps.version.outputs.VERSION }}/CHANGELOG.md) for complete details.
+        draft: false
+        prerelease: ${{ contains(steps.version.outputs.VERSION, 'alpha') || contains(steps.version.outputs.VERSION, 'beta') || contains(steps.version.outputs.VERSION, 'rc') }}
+
+    - name: Upload Release Assets
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: dist/
+        asset_name: duratypes-${{ steps.version.outputs.VERSION }}-dist
+        asset_content_type: application/zip
+
+  pypi-publish:
+    name: Publish to PyPI
+    runs-on: ubuntu-latest
+    needs: [test, build, github-release]
+    environment:
+      name: pypi
+      url: https://pypi.org/p/duratypes
+
+    steps:
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: dist
+        path: dist/
+
+    - name: Publish to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        # Use trusted publishing (no API token needed)
+        # Configure this in PyPI project settings
+        verbose: true
+        print-hash: true
+
+  post-release:
+    name: Post-Release Tasks
+    runs-on: ubuntu-latest
+    needs: [pypi-publish]
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Extract version from tag
+      id: version
+      run: |
+        echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+    - name: Create post-release issue
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const version = '${{ steps.version.outputs.VERSION }}';
+
+          const issueBody = `
+          ## Post-Release Checklist for v${version}
+
+          This issue tracks post-release tasks for version ${version}.
+
+          ### Immediate Tasks
+          - [ ] Verify PyPI package is available and installable
+          - [ ] Test installation in clean environment
+          - [ ] Update documentation if needed
+          - [ ] Announce release on relevant channels
+
+          ### Follow-up Tasks
+          - [ ] Monitor for any issues or bug reports
+          - [ ] Update project roadmap if needed
+          - [ ] Plan next release if applicable
+
+          ### Links
+          - [PyPI Package](https://pypi.org/project/duratypes/${version}/)
+          - [GitHub Release](https://github.com/dillon-barendt/duratypes/releases/tag/v${version})
+          - [Changelog](https://github.com/dillon-barendt/duratypes/blob/v${version}/CHANGELOG.md)
+
+          ---
+
+          *This issue was automatically created by the release workflow.*
+          `;
+
+          await github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: `Post-Release Tasks for v${version}`,
+            body: issueBody,
+            labels: ['release', 'maintenance']
+          });

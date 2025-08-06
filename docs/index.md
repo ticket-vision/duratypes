@@ -1,4 +1,4 @@
-# duratypes
+# DuraTypes
 
 **Typed duration utilities for Python and Pydantic**
 
@@ -91,4 +91,4 @@ For Pydantic users, see our [Pydantic Integration Guide](pydantic.md).
 
 ## License
 
-duratypes is released under the MIT License. See [LICENSE](https://github.com/dillon-barendt/duratypes/blob/main/LICENSE) for details.
+DuraTypes is released under the MIT License. See [LICENSE](https://github.com/dillon-barendt/duratypes/blob/main/LICENSE) for details.

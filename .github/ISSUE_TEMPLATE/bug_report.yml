@@ -1,0 +1,132 @@
+name: Bug Report
+description: File a bug report to help us improve duratypes
+title: "[Bug]: "
+labels: ["bug", "triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report! Please provide as much detail as possible to help us understand and reproduce the issue.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of what the bug is.
+      placeholder: Describe the bug...
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: Steps to reproduce the behavior
+      placeholder: |
+        1. Import duratypes
+        2. Call parse_duration with '...'
+        3. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: A clear and concise description of what you expected to happen.
+      placeholder: What should have happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: A clear and concise description of what actually happened.
+      placeholder: What actually happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: code
+    attributes:
+      label: Code Sample
+      description: Please provide a minimal code sample that reproduces the issue
+      render: python
+      placeholder: |
+        from duratypes import parse_duration
+
+        # Your code here that reproduces the issue
+        result = parse_duration("1h30m")
+    validations:
+      required: false
+
+  - type: textarea
+    id: error
+    attributes:
+      label: Error Message/Traceback
+      description: If applicable, add the full error message or traceback
+      render: text
+      placeholder: Paste the full error message or traceback here
+    validations:
+      required: false
+
+  - type: input
+    id: version
+    attributes:
+      label: duratypes Version
+      description: What version of duratypes are you using?
+      placeholder: "0.1.0"
+    validations:
+      required: true
+
+  - type: input
+    id: python-version
+    attributes:
+      label: Python Version
+      description: What version of Python are you using?
+      placeholder: "3.12.0"
+    validations:
+      required: true
+
+  - type: input
+    id: pydantic-version
+    attributes:
+      label: Pydantic Version
+      description: What version of Pydantic are you using?
+      placeholder: "2.5.0"
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: Operating System
+      description: What operating system are you using?
+      placeholder: "macOS 14.0, Ubuntu 22.04, Windows 11, etc."
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Add any other context about the problem here, such as related issues, workarounds, etc.
+      placeholder: Any additional information that might be helpful...
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Checklist
+      description: Please confirm the following
+      options:
+        - label: I have searched existing issues to ensure this is not a duplicate
+          required: true
+        - label: I have provided a minimal code sample that reproduces the issue
+          required: false
+        - label: I am using a supported version of Python (3.12+)
+          required: true
