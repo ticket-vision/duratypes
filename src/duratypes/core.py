@@ -1,4 +1,5 @@
 import logging
+import math
 import re
 from typing import Annotated
 
@@ -8,21 +9,25 @@ from pydantic import BeforeValidator, TypeAdapter
 # Custom exception hierarchy
 class DurationError(ValueError):
     """Base exception for all duration-related errors."""
+
     pass
 
 
 class InvalidFormatError(DurationError):
     """Raised when a duration string has an invalid format."""
+
     pass
 
 
 class InvalidTypeError(DurationError, TypeError):
     """Raised when an invalid type is provided for duration parsing."""
+
     pass
 
 
 class InvalidValueError(DurationError):
     """Raised when a duration value is invalid (e.g., None, NaN)."""
+
     pass
 
 
@@ -33,6 +38,16 @@ SECONDS_PER_DAY = 86400
 SECONDS_PER_WEEK = 604800  # 7 * 24 * 60 * 60
 SECONDS_PER_MONTH = 2592000  # 30 * 24 * 60 * 60 (approximate)
 SECONDS_PER_YEAR = 31536000  # 365 * 24 * 60 * 60 (approximate)
+
+_UNIT_MULTIPLIERS = {
+    "y": SECONDS_PER_YEAR,
+    "mo": SECONDS_PER_MONTH,
+    "w": SECONDS_PER_WEEK,
+    "d": SECONDS_PER_DAY,
+    "h": SECONDS_PER_HOUR,
+    "m": SECONDS_PER_MINUTE,
+    "s": 1,
+}
 
 # Logger for debugging
 logger = logging.getLogger(__name__)
@@ -71,11 +86,13 @@ def _validate_input(v: str | int | float) -> None:
     """Validate input type and basic constraints."""
     if v is None:
         raise InvalidValueError("Duration cannot be None")
+    if isinstance(v, bool):
+        raise InvalidTypeError("Duration cannot be a boolean")
 
 
 def _parse_numeric(v: int | float) -> int:
     """Parse numeric duration input."""
-    if not isinstance(v, (int, float)) or v != v:  # Check for NaN
+    if not isinstance(v, int | float) or (isinstance(v, float) and math.isnan(v)):
         raise InvalidValueError(f"Invalid numeric duration: {v!r}")
     logger.debug(f"Parsing numeric duration: {v}")
     return int(v)
@@ -112,10 +129,7 @@ def _parse_iso8601(raw: str, sign: int) -> int | None:
     s = float(m_iso.group("s") or 0)
 
     total_seconds = int(
-        d * SECONDS_PER_DAY
-        + h * SECONDS_PER_HOUR
-        + minutes * SECONDS_PER_MINUTE
-        + s
+        d * SECONDS_PER_DAY + h * SECONDS_PER_HOUR + minutes * SECONDS_PER_MINUTE + s
     )
     return sign * total_seconds
 
@@ -142,27 +156,13 @@ def _parse_compound(raw: str, sign: int) -> int | None:
 
         val = float(match.group("value"))
         unit = match.group("unit").lower().strip()
-
-        if unit.startswith("y"):
-            total += val * SECONDS_PER_YEAR
-        elif unit.startswith("mo"):
-            total += val * SECONDS_PER_MONTH
-        elif unit.startswith("w"):
-            total += val * SECONDS_PER_WEEK
-        elif unit.startswith("d"):
-            total += val * SECONDS_PER_DAY
-        elif unit.startswith("h"):
-            total += val * SECONDS_PER_HOUR
-        elif unit.startswith("m"):
-            total += val * SECONDS_PER_MINUTE
-        else:  # seconds
-            total += val
+        key = "mo" if unit.startswith("mo") else unit[0]
+        multiplier = _UNIT_MULTIPLIERS[key]
+        total += val * multiplier
 
         expected_pos = match.end()
 
-        logger.debug(
-            f"Parsed component: {val}{unit} -> {val * (SECONDS_PER_HOUR if unit.startswith('h') else SECONDS_PER_MINUTE if unit.startswith('m') else 1)} seconds"
-        )
+        logger.debug(f"Parsed component: {val}{unit} -> {val * multiplier} seconds")
 
     # Check that we've consumed the entire string (ignoring trailing whitespace)
     while expected_pos < len(raw) and raw[expected_pos].isspace():
@@ -195,13 +195,14 @@ def parse_duration(v: str | int | float) -> int:
     _validate_input(v)
 
     # Handle numeric inputs
-    if isinstance(v, (int, float)):
+    if isinstance(v, int | float):
         return _parse_numeric(v)
 
     # Handle string inputs
     if not isinstance(v, str):
         raise InvalidTypeError(
-            f"Duration must be str, int, or float, got {type(v).__name__}")
+            f"Duration must be str, int, or float, got {type(v).__name__}"
+        )
 
     raw = str(v).strip()
     if not raw:
@@ -245,7 +246,8 @@ def format_duration(seconds: int) -> str:
     """
     if not isinstance(seconds, int):
         raise InvalidTypeError(
-            f"Seconds must be an integer, got {type(seconds).__name__}")
+            f"Seconds must be an integer, got {type(seconds).__name__}"
+        )
 
     logger.debug(f"Formatting duration: {seconds} seconds")
 

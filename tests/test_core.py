@@ -1,12 +1,17 @@
-import pytest
 import time
-import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from hypothesis import given, strategies as st, assume, example
+
+import pytest
+from hypothesis import assume, example, given, strategies as st
 from hypothesis.strategies import composite
 from pydantic import ValidationError
 
-from duratypes.core import DurationAdapter, format_duration, parse_duration
+from duratypes.core import (
+    DurationAdapter,
+    InvalidTypeError,
+    format_duration,
+    parse_duration,
+)
 
 
 @pytest.mark.parametrize(
@@ -68,6 +73,15 @@ def test_rejects_empty_string():
         parse_duration("")
     with pytest.raises(ValueError):
         DurationAdapter.validate_python("")
+
+
+def test_rejects_boolean_input():
+    with pytest.raises(InvalidTypeError):
+        parse_duration(True)
+    with pytest.raises(InvalidTypeError):
+        parse_duration(False)
+    with pytest.raises(ValidationError):
+        DurationAdapter.validate_python(True)
 
 
 class TestComprehensiveEdgeCases:
@@ -184,21 +198,20 @@ class TestComprehensiveEdgeCases:
 
     def test_nan_and_infinity(self):
         """Test NaN and infinity handling."""
-        import math
 
         with pytest.raises(ValueError):
-            parse_duration(float('nan'))
+            parse_duration(float("nan"))
 
         with pytest.raises(OverflowError):
-            parse_duration(float('inf'))
+            parse_duration(float("inf"))
 
         with pytest.raises(OverflowError):
-            parse_duration(float('-inf'))
+            parse_duration(float("-inf"))
 
     def test_unicode_and_special_characters(self):
         """Test Unicode and special character handling."""
         # Unicode whitespace should be handled by strip()
-        assert parse_duration("30s\u00A0") == 30  # Non-breaking space
+        assert parse_duration("30s\u00a0") == 30  # Non-breaking space
 
         # Invalid Unicode characters should fail
         with pytest.raises(ValueError):
@@ -206,7 +219,7 @@ class TestComprehensiveEdgeCases:
 
         # Test that zero-width space doesn't break parsing
         with pytest.raises(ValueError):
-            parse_duration("invalid\u200B")  # Zero-width space with invalid text
+            parse_duration("invalid\u200b")  # Zero-width space with invalid text
 
     def test_very_long_strings(self):
         """Test very long input strings."""
@@ -390,7 +403,9 @@ class TestPropertyBasedTesting:
         assert formatted == formatted.strip()
 
         # Should contain only valid characters
-        valid_chars = set("0123456789hmsydwo-")  # Added y(ears), d(ays), w(eeks), o(months)
+        valid_chars = set(
+            "0123456789hmsydwo-"
+        )  # Added y(ears), d(ays), w(eeks), o(months)
         assert all(c in valid_chars for c in formatted)
 
     @given(st.integers(min_value=-999999, max_value=-1))
@@ -409,7 +424,14 @@ class TestPropertyBasedTesting:
         reparsed = parse_duration(formatted)
         assert reparsed == negative_seconds
 
-    @given(st.floats(min_value=-999999.0, max_value=999999.0, allow_nan=False, allow_infinity=False))
+    @given(
+        st.floats(
+            min_value=-999999.0,
+            max_value=999999.0,
+            allow_nan=False,
+            allow_infinity=False,
+        )
+    )
     def test_float_input_truncation(self, float_val):
         """Test that float inputs are truncated to integers."""
         parsed = parse_duration(float_val)
@@ -422,14 +444,18 @@ class TestPropertyBasedTesting:
         # Skip strings that might accidentally be valid
         assume(not any(c in random_text.lower() for c in "hms"))
         assume(not random_text.startswith("pt"))
-        assume(not random_text.replace(".", "").replace("-", "").replace("+", "").isdigit())
+        assume(
+            not random_text.replace(".", "").replace("-", "").replace("+", "").isdigit()
+        )
 
         with pytest.raises((ValueError, TypeError)):
             parse_duration(random_text)
 
-    @given(st.integers(min_value=0, max_value=999),
-           st.integers(min_value=0, max_value=59),
-           st.integers(min_value=0, max_value=59))
+    @given(
+        st.integers(min_value=0, max_value=999),
+        st.integers(min_value=0, max_value=59),
+        st.integers(min_value=0, max_value=59),
+    )
     def test_compound_format_generation(self, hours, minutes, seconds):
         """Test parsing of systematically generated compound formats."""
         # Build duration string
@@ -566,20 +592,19 @@ class TestErrorHandlingAndExceptions:
 
     def test_parse_duration_nan_handling(self):
         """Test NaN handling in parse_duration."""
-        import math
 
         with pytest.raises(ValueError, match="Invalid numeric duration"):
-            parse_duration(float('nan'))
+            parse_duration(float("nan"))
 
     def test_parse_duration_infinity_handling(self):
         """Test infinity handling in parse_duration."""
         # Positive infinity
         with pytest.raises(OverflowError):
-            parse_duration(float('inf'))
+            parse_duration(float("inf"))
 
         # Negative infinity
         with pytest.raises(OverflowError):
-            parse_duration(float('-inf'))
+            parse_duration(float("-inf"))
 
     def test_format_duration_type_errors(self):
         """Test all TypeError scenarios in format_duration."""
@@ -737,9 +762,7 @@ class TestPerformanceBenchmarks:
 
     def test_parse_duration_performance_compound(self):
         """Benchmark parse_duration with compound formats."""
-        test_cases = [
-            "30s", "5m", "1h", "1h30m", "2h45m30s", "10h59m59s"
-        ]
+        test_cases = ["30s", "5m", "1h", "1h30m", "2h45m30s", "10h59m59s"]
 
         iterations = 1000
         start_time = time.time()
@@ -753,15 +776,17 @@ class TestPerformanceBenchmarks:
         avg_time_per_parse = total_time / (iterations * len(test_cases))
 
         # Performance regression test: should parse in less than 1ms on average
-        assert avg_time_per_parse < 0.001, f"Performance regression: avg time {avg_time_per_parse:.6f}s > 1ms"
+        assert (
+            avg_time_per_parse < 0.001
+        ), f"Performance regression: avg time {avg_time_per_parse:.6f}s > 1ms"
 
-        print(f"Compound format parsing: {avg_time_per_parse:.6f}s per parse ({iterations * len(test_cases)} total)")
+        print(
+            f"Compound format parsing: {avg_time_per_parse:.6f}s per parse ({iterations * len(test_cases)} total)"
+        )
 
     def test_parse_duration_performance_iso(self):
         """Benchmark parse_duration with ISO 8601 formats."""
-        test_cases = [
-            "PT30S", "PT5M", "PT1H", "PT1H30M", "PT2H45M30S", "PT10H59M59S"
-        ]
+        test_cases = ["PT30S", "PT5M", "PT1H", "PT1H30M", "PT2H45M30S", "PT10H59M59S"]
 
         iterations = 1000
         start_time = time.time()
@@ -775,9 +800,13 @@ class TestPerformanceBenchmarks:
         avg_time_per_parse = total_time / (iterations * len(test_cases))
 
         # Performance regression test: should parse in less than 1ms on average
-        assert avg_time_per_parse < 0.001, f"Performance regression: avg time {avg_time_per_parse:.6f}s > 1ms"
+        assert (
+            avg_time_per_parse < 0.001
+        ), f"Performance regression: avg time {avg_time_per_parse:.6f}s > 1ms"
 
-        print(f"ISO format parsing: {avg_time_per_parse:.6f}s per parse ({iterations * len(test_cases)} total)")
+        print(
+            f"ISO format parsing: {avg_time_per_parse:.6f}s per parse ({iterations * len(test_cases)} total)"
+        )
 
     def test_parse_duration_performance_numeric(self):
         """Benchmark parse_duration with numeric inputs."""
@@ -795,9 +824,13 @@ class TestPerformanceBenchmarks:
         avg_time_per_parse = total_time / (iterations * len(test_cases))
 
         # Numeric parsing should be very fast
-        assert avg_time_per_parse < 0.0001, f"Performance regression: avg time {avg_time_per_parse:.6f}s > 0.1ms"
+        assert (
+            avg_time_per_parse < 0.0001
+        ), f"Performance regression: avg time {avg_time_per_parse:.6f}s > 0.1ms"
 
-        print(f"Numeric parsing: {avg_time_per_parse:.6f}s per parse ({iterations * len(test_cases)} total)")
+        print(
+            f"Numeric parsing: {avg_time_per_parse:.6f}s per parse ({iterations * len(test_cases)} total)"
+        )
 
     def test_format_duration_performance(self):
         """Benchmark format_duration performance."""
@@ -815,9 +848,13 @@ class TestPerformanceBenchmarks:
         avg_time_per_format = total_time / (iterations * len(test_cases))
 
         # Formatting should be fast
-        assert avg_time_per_format < 0.0001, f"Performance regression: avg time {avg_time_per_format:.6f}s > 0.1ms"
+        assert (
+            avg_time_per_format < 0.0001
+        ), f"Performance regression: avg time {avg_time_per_format:.6f}s > 0.1ms"
 
-        print(f"Duration formatting: {avg_time_per_format:.6f}s per format ({iterations * len(test_cases)} total)")
+        print(
+            f"Duration formatting: {avg_time_per_format:.6f}s per format ({iterations * len(test_cases)} total)"
+        )
 
     def test_duration_adapter_performance(self):
         """Benchmark DurationAdapter performance."""
@@ -835,9 +872,13 @@ class TestPerformanceBenchmarks:
         avg_time_per_validation = total_time / (iterations * len(test_cases))
 
         # Adapter validation should be reasonably fast
-        assert avg_time_per_validation < 0.001, f"Performance regression: avg time {avg_time_per_validation:.6f}s > 1ms"
+        assert (
+            avg_time_per_validation < 0.001
+        ), f"Performance regression: avg time {avg_time_per_validation:.6f}s > 1ms"
 
-        print(f"DurationAdapter validation: {avg_time_per_validation:.6f}s per validation ({iterations * len(test_cases)} total)")
+        print(
+            f"DurationAdapter validation: {avg_time_per_validation:.6f}s per validation ({iterations * len(test_cases)} total)"
+        )
 
     def test_round_trip_performance(self):
         """Benchmark round-trip parse -> format performance."""
@@ -858,9 +899,13 @@ class TestPerformanceBenchmarks:
         avg_time_per_round_trip = total_time / (iterations * len(test_strings))
 
         # Round-trip should be reasonably fast
-        assert avg_time_per_round_trip < 0.002, f"Performance regression: avg time {avg_time_per_round_trip:.6f}s > 2ms"
+        assert (
+            avg_time_per_round_trip < 0.002
+        ), f"Performance regression: avg time {avg_time_per_round_trip:.6f}s > 2ms"
 
-        print(f"Round-trip performance: {avg_time_per_round_trip:.6f}s per round-trip ({iterations * len(test_strings)} total)")
+        print(
+            f"Round-trip performance: {avg_time_per_round_trip:.6f}s per round-trip ({iterations * len(test_strings)} total)"
+        )
 
 
 class TestThreadSafety:
@@ -869,13 +914,18 @@ class TestThreadSafety:
     def test_parse_duration_thread_safety(self):
         """Test that parse_duration is thread-safe."""
         test_cases = [
-            "30s", "5m", "1h", "1h30m", "PT30S", "PT5M", "PT1H30M",
-            3600, 300, 30
+            "30s",
+            "5m",
+            "1h",
+            "1h30m",
+            "PT30S",
+            "PT5M",
+            "PT1H30M",
+            3600,
+            300,
+            30,
         ]
-        expected_results = [
-            30, 300, 3600, 5400, 30, 300, 5400,
-            3600, 300, 30
-        ]
+        expected_results = [30, 300, 3600, 5400, 30, 300, 5400, 3600, 300, 30]
 
         results = []
         errors = []
@@ -893,7 +943,7 @@ class TestThreadSafety:
         # Run multiple threads concurrently
         with ThreadPoolExecutor(max_workers=10) as executor:
             futures = []
-            for case, expected in zip(test_cases, expected_results):
+            for case, expected in zip(test_cases, expected_results, strict=False):
                 for _ in range(5):  # 5 threads per test case
                     futures.append(executor.submit(worker, case, expected))
 
@@ -905,8 +955,12 @@ class TestThreadSafety:
         assert not errors, f"Thread safety errors: {errors}"
 
         # Verify we got expected number of results
-        expected_total = len(test_cases) * 5 * 100  # cases * threads_per_case * iterations_per_thread
-        assert len(results) == expected_total, f"Expected {expected_total} results, got {len(results)}"
+        expected_total = (
+            len(test_cases) * 5 * 100
+        )  # cases * threads_per_case * iterations_per_thread
+        assert (
+            len(results) == expected_total
+        ), f"Expected {expected_total} results, got {len(results)}"
 
     def test_format_duration_thread_safety(self):
         """Test that format_duration is thread-safe."""
@@ -928,7 +982,7 @@ class TestThreadSafety:
 
         with ThreadPoolExecutor(max_workers=10) as executor:
             futures = []
-            for case, expected in zip(test_cases, expected_results):
+            for case, expected in zip(test_cases, expected_results, strict=False):
                 for _ in range(5):
                     futures.append(executor.submit(worker, case, expected))
 
@@ -963,7 +1017,7 @@ class TestThreadSafety:
 
         with ThreadPoolExecutor(max_workers=15) as executor:
             futures = []
-            for case, expected in zip(test_cases, expected_results):
+            for case, expected in zip(test_cases, expected_results, strict=False):
                 for _ in range(6):  # 6 threads per test case
                     futures.append(executor.submit(worker, case, expected))
 
@@ -975,7 +1029,9 @@ class TestThreadSafety:
 
         # Verify singleton behavior - all threads should see the same adapter instance
         unique_adapter_ids = set(adapter_instances)
-        assert len(unique_adapter_ids) == 1, f"Expected 1 unique adapter instance, got {len(unique_adapter_ids)}"
+        assert (
+            len(unique_adapter_ids) == 1
+        ), f"Expected 1 unique adapter instance, got {len(unique_adapter_ids)}"
 
         # Verify expected number of results
         expected_total = len(test_cases) * 6 * 50
