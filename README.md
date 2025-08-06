@@ -1,15 +1,15 @@
-# 📦 duratypes
+# DuraTypes
 
 Typed duration utilities for Python, designed for speed, clarity, and seamless use with **Pydantic v2**.
 
 ## Features
 
-- 🚀 **Fast & Lightweight**: Zero external dependencies except Pydantic
-- 🎯 **Multiple Input Formats**: Compound (`"1h30m"`), ISO 8601 (`"PT1H30M"`), and numeric (`90`)
-- 🔧 **Pydantic Integration**: Seamless validation with `Annotated` types
-- 📝 **Type Safety**: Full type hints and comprehensive error messages
-- ⚡ **Performance**: Singleton `TypeAdapter` for maximum reuse
-- 🛡️ **Robust**: Handles edge cases, negative durations, and validation
+- **Fast & Lightweight**: Zero external dependencies except Pydantic
+- **Multiple Input Formats**: Compound (`"1h30m"`), ISO 8601 (`"PT1H30M"`), and numeric (`90`)
+- **Pydantic Integration**: Seamless validation with `Annotated` types
+- **Type Safety**: Full type hints and comprehensive error messages
+- **Performance**: Singleton `TypeAdapter` for maximum reuse
+- **Robust**: Handles edge cases, negative durations, and validation
 
 ---
 

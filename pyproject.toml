@@ -7,7 +7,7 @@ name = "duratypes"
 version = "0.1.0"
 description = "A Python package for duration and time-related data types and utilities"
 readme = "README.md"
-license = { text = "MIT" }
+license = "MIT"
 authors = [
     { name = "Dillon Barendt", email = "dillon.barendt@ticket-vision.com" }
 ]
@@ -18,7 +18,6 @@ keywords = ["duration", "time", "datetime", "utilities"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.12",
@@ -52,6 +51,9 @@ dev = [
     "mypy>=1.0.0",
     "black>=23.0.0",
     "pre-commit>=3.0.0",
+    "mkdocs>=1.6.1",
+    "mkdocs-material>=9.6.16",
+    "mkdocstrings>=0.30.0",
 ]
 
 # Ruff configuration for linting and formatting
