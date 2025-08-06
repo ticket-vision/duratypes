@@ -1,4 +1,6 @@
 name: Build & Publish to TestPyPI and PyPI
+permissions:
+  contents: read
 
 on:
   push:
