@@ -10,7 +10,11 @@ __email__ = "dillon.barendt@ticket-vision.com"
 from .core import (
     Duration,
     DurationAdapter,
+    DurationError,
     Hours,
+    InvalidFormatError,
+    InvalidTypeError,
+    InvalidValueError,
     Minutes,
     Seconds,
     format_duration,
@@ -20,7 +24,11 @@ from .core import (
 __all__ = [
     "Duration",
     "DurationAdapter",
+    "DurationError",
     "Hours",
+    "InvalidFormatError",
+    "InvalidTypeError",
+    "InvalidValueError",
     "Minutes",
     "Seconds",
     "format_duration",
