@@ -50,5 +50,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Thread-safe singleton pattern implementation
 - Robust input validation and sanitization
 
-[Unreleased]: https://github.com/dillon-barendt/duratypes/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/dillon-barendt/duratypes/releases/tag/v0.1.0
+## Version History
+
+For the complete changelog with detailed release notes, see the [CHANGELOG.md](https://github.com/dillon-barendt/duratypes/blob/main/CHANGELOG.md) file in the repository root.
+
+## Release Links
+
+- [Unreleased](https://github.com/dillon-barendt/duratypes/compare/v0.1.0...HEAD)
+- [0.1.0](https://github.com/dillon-barendt/duratypes/releases/tag/v0.1.0)
+
+## Versioning
+
+This project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html):
+
+- **MAJOR** version for incompatible API changes
+- **MINOR** version for backwards-compatible functionality additions
+- **PATCH** version for backwards-compatible bug fixes
+
+## Contributing
+
+See our [Contributing Guide](contributing.md) for information about how to contribute to duratypes development.

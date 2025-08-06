@@ -181,8 +181,8 @@ def parse_duration(v: str | int | float) -> int:
 
     Args:
         v: Duration input in various formats:
-           - String: "30s", "5m", "1h30m", "PT1H30M", etc.
-           - Integer/Float: Direct seconds value
+            - String: "30s", "5m", "1h30m", "PT1H30M", etc.
+            - Integer/Float: Direct seconds value
 
     Returns:
         Duration in seconds as an integer

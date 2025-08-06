@@ -255,7 +255,7 @@ class TestComprehensiveEdgeCases:
     def test_format_duration_edge_cases(self):
         """Test format_duration with edge cases."""
         # Very large values
-        assert format_duration(999999) == "277h46m39s"
+        assert format_duration(999999) == "1w4d13h46m39s"
 
         # Negative values
         assert format_duration(-3661) == "-1h1m1s"
@@ -390,7 +390,7 @@ class TestPropertyBasedTesting:
         assert formatted == formatted.strip()
 
         # Should contain only valid characters
-        valid_chars = set("0123456789hms-")
+        valid_chars = set("0123456789hmsydwo-")  # Added y(ears), d(ays), w(eeks), o(months)
         assert all(c in valid_chars for c in formatted)
 
     @given(st.integers(min_value=-999999, max_value=-1))
@@ -911,7 +911,7 @@ class TestThreadSafety:
     def test_format_duration_thread_safety(self):
         """Test that format_duration is thread-safe."""
         test_cases = [30, 300, 3600, 5400, 7200, 90061]
-        expected_results = ["30s", "5m", "1h", "1h30m", "2h", "25h1m1s"]
+        expected_results = ["30s", "5m", "1h", "1h30m", "2h", "1d1h1m1s"]
 
         results = []
         errors = []
